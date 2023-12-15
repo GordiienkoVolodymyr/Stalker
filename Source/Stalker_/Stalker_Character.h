@@ -1,5 +1,3 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -24,62 +22,32 @@ class AStalker_Character : public ACharacter
 public:
 	AStalker_Character();
 
-	/** Look Input Action */
+	//USkeletalMeshComponent *Get_Mesh_1P() const { return Mesh_1P; }
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
 
 	// Переменная для AnimBP для переключения на другой набор анимаций  
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon)
-	bool bHasRifle;
-
-	/** Setter to set the bool */
-	UFUNCTION(BlueprintCallable, Category = Weapon)
-	void SetHasRifle(bool bNewHasRifle);
-
-	/** Getter for the bool */
-	UFUNCTION(BlueprintCallable, Category = Weapon)
-	bool GetHasRifle();
-
-	/** Returns Mesh1P subobject **/
-	USkeletalMeshComponent *GetMesh1P() const { return Mesh1P; }
-
-	/** Returns FirstPersonCameraComponent subobject **/
-	UCameraComponent *GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon) bool Has_Rifle;
+	
+	// Pawn mesh: 1st person view (arms; seen only by self)
+	//Меш игрока от первого лица (только свои руки)
+	UPROPERTY(VisibleDefaultsOnly, Category = Mesh) USkeletalMeshComponent *Mesh_1P;
 
 protected:
 	virtual void BeginPlay();
 
-	/** Called for movement input */
-	void Move(const FInputActionValue& Value);
-
-	/** Called for looking input */
-	void Look(const FInputActionValue& Value);
-
-	// APawn interface
-	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
-	// End of APawn interface
+	virtual void SetupPlayerInputComponent(UInputComponent *input_component) override;
+	void Move(const FInputActionValue &value);
+	void Look(const FInputActionValue &value);
 
 private:
-	/** Pawn mesh: 1st person view (arms; seen only by self) */
-	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
-	USkeletalMeshComponent *Mesh1P;
-
-	/** First person camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent *FirstPersonCameraComponent;
-
-	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputMappingContext *DefaultMappingContext;
-
-	/** Jump Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction *JumpAction;
-
-	/** Move Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction *MoveAction;
-
-
 };
-
