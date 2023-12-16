@@ -7,36 +7,36 @@
 AStalker_Projectile::AStalker_Projectile() 
 {
 	// Use a sphere as a simple collision representation
-	CollisionComp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
-	CollisionComp->InitSphereRadius(5.0f);
-	CollisionComp->BodyInstance.SetCollisionProfileName("Projectile");
-	CollisionComp->OnComponentHit.AddDynamic(this, &AStalker_Projectile::OnHit);		// set up a notification for when this component hits something blocking
+	Collision_Comp = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComp"));
+	Collision_Comp->InitSphereRadius(5.0f);
+	Collision_Comp->BodyInstance.SetCollisionProfileName("Projectile");
+	Collision_Comp->OnComponentHit.AddDynamic(this, &AStalker_Projectile::On_Hit);		// set up a notification for when this component hits something blocking
 
 	// Players can't walk on it
-	CollisionComp->SetWalkableSlopeOverride(FWalkableSlopeOverride(WalkableSlope_Unwalkable, 0.f));
-	CollisionComp->CanCharacterStepUpOn = ECB_No;
+	Collision_Comp->SetWalkableSlopeOverride(FWalkableSlopeOverride(WalkableSlope_Unwalkable, 0.0f));
+	Collision_Comp->CanCharacterStepUpOn = ECB_No;
 
 	// Set as root component
-	RootComponent = CollisionComp;
+	RootComponent = Collision_Comp;
 
 	// Use a ProjectileMovementComponent to govern this projectile's movement
-	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileComp"));
-	ProjectileMovement->UpdatedComponent = CollisionComp;
-	ProjectileMovement->InitialSpeed = 3000.f;
-	ProjectileMovement->MaxSpeed = 3000.f;
-	ProjectileMovement->bRotationFollowsVelocity = true;
-	ProjectileMovement->bShouldBounce = true;
+	Projectile_Movement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileComp"));
+	Projectile_Movement->UpdatedComponent = Collision_Comp;
+	Projectile_Movement->InitialSpeed = 3000.0f;
+	Projectile_Movement->MaxSpeed = 3000.0f;
+	Projectile_Movement->bRotationFollowsVelocity = true;
+	Projectile_Movement->bShouldBounce = true;
 
 	// Die after 3 seconds by default
 	InitialLifeSpan = 3.0f;
 }
 
-void AStalker_Projectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+void AStalker_Projectile::On_Hit(UPrimitiveComponent* hit_comp, AActor* other_actor, UPrimitiveComponent* other_comp, FVector normal_impulse, const FHitResult& hit)
 {
 	// Only add impulse and destroy projectile if we hit a physics
-	if ((OtherActor != nullptr) && (OtherActor != this) && (OtherComp != nullptr) && OtherComp->IsSimulatingPhysics())
+	if ((other_actor != nullptr) && (other_actor != this) && (other_comp != nullptr) && other_comp->IsSimulatingPhysics())
 	{
-		OtherComp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
+		other_comp->AddImpulseAtLocation(GetVelocity() * 100.0f, GetActorLocation());
 
 		Destroy();
 	}

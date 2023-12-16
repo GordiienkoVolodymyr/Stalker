@@ -42,7 +42,6 @@ AStalker_Character::AStalker_Character()
 
 void AStalker_Character::BeginPlay()
 {
-	// Call the base class  
 	Super::BeginPlay();
 
 	// Add Input Mapping Context
@@ -78,13 +77,13 @@ void AStalker_Character::SetupPlayerInputComponent(UInputComponent* input_compon
 void AStalker_Character::Move(const FInputActionValue &value)
 {
 	// input is a Vector2D
-	FVector2D MovementVector = value.Get<FVector2D>();
+	FVector2D movement_vector = value.Get<FVector2D>();
 
 	if (Controller != nullptr)
 	{
 		// add movement 
-		AddMovementInput(GetActorForwardVector(), MovementVector.Y);
-		AddMovementInput(GetActorRightVector(), MovementVector.X);
+		AddMovementInput(GetActorForwardVector(), movement_vector.Y);
+		AddMovementInput(GetActorRightVector(), movement_vector.X);
 	}
 }
 
@@ -92,13 +91,13 @@ void AStalker_Character::Move(const FInputActionValue &value)
 void AStalker_Character::Look(const FInputActionValue &value)
 {
 	// input is a Vector2D
-	FVector2D LookAxisVector = value.Get<FVector2D>();
+	FVector2D look_axis_vector = value.Get<FVector2D>();
 
 	if (Controller != nullptr)
 	{
 		// add yaw and pitch input to controller
-		AddControllerYawInput(LookAxisVector.X);
-		AddControllerPitchInput(LookAxisVector.Y);
+		AddControllerYawInput(look_axis_vector.X);
+		AddControllerPitchInput(look_axis_vector.Y);
 		
 	}
 }
