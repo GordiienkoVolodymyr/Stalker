@@ -11,6 +11,7 @@ class UCameraComponent;
 class UInputAction;
 class UInputMappingContext;
 struct FInputActionValue;
+class AWeapon;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
@@ -22,7 +23,8 @@ class AStalker_Character : public ACharacter
 public:
 	AStalker_Character();
 
-	//USkeletalMeshComponent *Get_Mesh_1P() const { return Mesh_1P; }
+	UFUNCTION(BlueprintCallable) //Приаттачить пушку от позиции персонажа
+	void PickUp_Weapon(AWeapon* weapon);
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
@@ -33,6 +35,9 @@ public:
 	// Pawn mesh: 1st person view (arms; seen only by self)
 	//Меш игрока от первого лица (только свои руки)
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh) USkeletalMeshComponent *Mesh_1P;
+	
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
+	AWeapon *Curennt_Weapon;
 
 protected:
 	virtual void BeginPlay();
@@ -40,6 +45,7 @@ protected:
 	virtual void SetupPlayerInputComponent(UInputComponent *input_component) override;
 	void Move(const FInputActionValue &value);
 	void Look(const FInputActionValue &value);
+	void Fire(const FInputActionValue &value);
 
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -50,4 +56,6 @@ private:
 	UInputAction *JumpAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction *MoveAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction *Fire_Action;
 };

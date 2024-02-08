@@ -1,6 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "Stalker_Character.h"
+#include "AWeapon.h"
 #include "Stalker_Projectile.h"
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
@@ -39,6 +40,28 @@ AStalker_Character::AStalker_Character()
 
 }
 
+void AStalker_Character::PickUp_Weapon(AWeapon* weapon)
+{
+
+	if (weapon == nullptr )
+	{
+		return;
+	}
+
+	if (Curennt_Weapon != 0)
+	{
+		Curennt_Weapon->Detach();
+	}
+
+	Curennt_Weapon = weapon;
+
+	// Аттачим оружие к персонажу
+	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
+	AttachToComponent(Mesh_1P, AttachmentRules, FName(TEXT("GripPoint")));
+	// Устанавливаем значение true Has_Rifle, что ы анимационный блюпринт мог переключиться на другой набор анимаций
+	Has_Rifle = true;
+
+}
 
 void AStalker_Character::BeginPlay()
 {
@@ -66,6 +89,7 @@ void AStalker_Character::SetupPlayerInputComponent(UInputComponent* input_compon
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AStalker_Character::Move);
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AStalker_Character::Look);
+		EnhancedInputComponent->BindAction(Fire_Action, ETriggerEvent::Triggered, this, &AStalker_Character::Fire);
 	}
 	else
 	{
@@ -99,5 +123,13 @@ void AStalker_Character::Look(const FInputActionValue &value)
 		AddControllerYawInput(look_axis_vector.X);
 		AddControllerPitchInput(look_axis_vector.Y);
 		
+	}
+}
+
+void AStalker_Character::Fire(const FInputActionValue &value)
+{
+	if (Curennt_Weapon != 0)
+	{
+		Curennt_Weapon->Fire(this);
 	}
 }

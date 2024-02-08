@@ -2,11 +2,10 @@
 
 #pragma once
 
-#include "CoreMinimal.h"
+#include "Stalker_Character.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "TP_WeaponComponent.generated.h"
 
-class AStalker_Character;
 
 UCLASS(Blueprintable, BlueprintType, ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class STALKER__API UTP_WeaponComponent : public USkeletalMeshComponent
@@ -14,47 +13,38 @@ class STALKER__API UTP_WeaponComponent : public USkeletalMeshComponent
 	GENERATED_BODY()
 
 public:
-	/** Projectile class to spawn */
+	UTP_WeaponComponent();
+
+	UFUNCTION(BlueprintCallable, Category="Weapon") //Приаттачить пушку от позиции персонажа
+	void AttachWeapon(AStalker_Character* target_character);
+
+	UFUNCTION(BlueprintCallable, Category="Weapon") //Выстрелить снарядом
+	void Fire();
+
 	UPROPERTY(EditDefaultsOnly, Category=Projectile)
 	TSubclassOf<class AStalker_Projectile> ProjectileClass;
 
-	/** Sound to play each time we fire */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
 	USoundBase* FireSound;
-	
-	/** AnimMontage to play each time we fire */
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	UAnimMontage* FireAnimation;
 
-	/** Gun muzzle's offset from the characters location */
+	//Смещение дула пушки от позиции персонажа
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
 	FVector MuzzleOffset;
 
-	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
-	class UInputMappingContext* FireMappingContext;
+	UInputMappingContext* FireMappingContext;
 
-	/** Fire Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category=Input, meta=(AllowPrivateAccess = "true"))
-	class UInputAction* FireAction;
-
-	/** Sets default values for this component's properties */
-	UTP_WeaponComponent();
-
-	/** Attaches the actor to a FirstPersonCharacter */
-	UFUNCTION(BlueprintCallable, Category="Weapon")
-	void AttachWeapon(AStalker_Character* TargetCharacter);
-
-	/** Make the weapon Fire a Projectile */
-	UFUNCTION(BlueprintCallable, Category="Weapon")
-	void Fire();
+	UInputAction* FireAction;
 
 protected:
-	/** Ends gameplay for this component. */
 	UFUNCTION()
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	virtual void EndPlay(const EEndPlayReason::Type end_play_reason) override;
 
 private:
 	/** The Character holding this weapon*/
-	AStalker_Character* Character;
+	AStalker_Character* Character; // Персонаж который держит это оружие
 };
