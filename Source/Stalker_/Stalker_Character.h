@@ -1,4 +1,4 @@
-#pragma once
+п»ї#pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
@@ -23,39 +23,43 @@ class AStalker_Character : public ACharacter
 public:
 	AStalker_Character();
 
-	UFUNCTION(BlueprintCallable) //Приаттачить пушку от позиции персонажа
-	void PickUp_Weapon(AWeapon* weapon);
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* LookAction;
-
-	// Переменная для AnimBP для переключения на другой набор анимаций  
+	// РџРµСЂРµРјРµРЅРЅР°СЏ РґР»СЏ AnimBP РґР»СЏ РїРµСЂРµРєР»СЋС‡РµРЅРёСЏ РЅР° РґСЂСѓРіРѕР№ РЅР°Р±РѕСЂ Р°РЅРёРјР°С†РёР№  
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon) bool Has_Rifle;
 	
-	// Pawn mesh: 1st person view (arms; seen only by self)
-	//Меш игрока от первого лица (только свои руки)
+	//РњРµС€ РёРіСЂРѕРєР° РѕС‚ РїРµСЂРІРѕРіРѕ Р»РёС†Р° (С‚РѕР»СЊРєРѕ СЃРІРѕРё СЂСѓРєРё)
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh) USkeletalMeshComponent *Mesh_1P;
 	
-	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
-	AWeapon *Curennt_Weapon;
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly) AWeapon *Current_Weapon;
 
 protected:
 	virtual void BeginPlay();
-
 	virtual void SetupPlayerInputComponent(UInputComponent *input_component) override;
-	void Move(const FInputActionValue &value);
-	void Look(const FInputActionValue &value);
-	void Fire(const FInputActionValue &value);
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly) TArray<AActor*> Interactable_Actrors;
+
 
 private:
+
+	void On_Move_Action(const FInputActionValue &value);
+	void On_Look_Action(const FInputActionValue &value);
+	void On_Fire_Action(const FInputActionValue &value);
+	void On_Use_Action(const FInputActionValue &value);
+	void PickUp_Weapon(AWeapon* weapon); //РџСЂРёР°С‚С‚Р°С‡РёС‚СЊ РїСѓС€РєСѓ РѕС‚ РїРѕР·РёС†РёРё РїРµСЂСЃРѕРЅР°Р¶Р°
+
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent *FirstPersonCameraComponent;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputMappingContext *DefaultMappingContext;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction *JumpAction;
+	UInputAction *Jump_Action;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction *MoveAction;
+	UInputAction *Move_Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* Look_Action;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction *Fire_Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction *Use_Action;
 };

@@ -1,15 +1,38 @@
-#include "AWeapon.h"
+п»ї#include "AWeapon.h"
 
 AWeapon::AWeapon()
 {	
-	Muzzle_Offset = FVector(100.0f, 0.0f, 10.0f); // Смещение по умолчанию от персонажа до точки спавна снаряда
+	Muzzle_Offset = FVector(100.0f, 0.0f, 10.0f); // РЎРјРµС‰РµРЅРёРµ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ РѕС‚ РїРµСЂСЃРѕРЅР°Р¶Р° РґРѕ С‚РѕС‡РєРё СЃРїР°РІРЅР° СЃРЅР°СЂСЏРґР°
 }
 
 void AWeapon::Detach()
 {
+	USceneComponent *root_conponent = GetRootComponent();
 
+	DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	
+	if (UPrimitiveComponent *primitive_component = Cast<UPrimitiveComponent>(root_conponent))
+	{
+		primitive_component->SetSimulatePhysics(true);
+		primitive_component->SetCollisionProfileName(UCollisionProfile::PhysicsActor_ProfileName);
+	}
 }
 
+void AWeapon::Attach(USkeletalMeshComponent *arms_mesh)
+{
+	
+	USceneComponent *root_conponent = GetRootComponent();
+	if (UPrimitiveComponent *primitive_component = Cast<UPrimitiveComponent>(root_conponent))
+	{
+		primitive_component->SetSimulatePhysics(false);
+		primitive_component->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
+	}
+
+	// РђС‚С‚Р°С‡РёРј РѕСЂСѓР¶РёРµ Рє РїРµСЂСЃРѕРЅР°Р¶Сѓ
+	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
+	AttachToComponent(arms_mesh, AttachmentRules, FName(TEXT("GripPoint")));
+
+}
 
 void AWeapon::Fire(AStalker_Character* character)
 {
@@ -18,37 +41,61 @@ void AWeapon::Fire(AStalker_Character* character)
 		return;
 	}
 
-	//Пытаемся выстрелить снарядом
+	//РџС‹С‚Р°РµРјСЃСЏ РІС‹СЃС‚СЂРµР»РёС‚СЊ СЃРЅР°СЂСЏРґРѕРј
 	if (Projectile_Class != nullptr)
 	{
 		if (UWorld* const world = GetWorld())
 		{
 			APlayerController* player_controller = Cast<APlayerController>(character->GetController());
 			FRotator spawn_rotation = player_controller->PlayerCameraManager->GetCameraRotation();
-			//Muzzle_Offset представлен в пространстве камеры, его надо перевести в мировое пространство прежде, чем смещать от позиции персонажа для того что бы найти позицию дула
-			FVector spawn_location = GetOwner()->GetActorLocation() + spawn_rotation.RotateVector(Muzzle_Offset);
+			//Muzzle_Offset РїСЂРµРґСЃС‚Р°РІР»РµРЅ РІ РїСЂРѕСЃС‚СЂР°РЅСЃС‚РІРµ РєР°РјРµСЂС‹, РµРіРѕ РЅР°РґРѕ РїРµСЂРµРІРµСЃС‚Рё РІ РјРёСЂРѕРІРѕРµ РїСЂРѕСЃС‚СЂР°РЅСЃС‚РІРѕ РїСЂРµР¶РґРµ, С‡РµРј СЃРјРµС‰Р°С‚СЊ РѕС‚ РїРѕР·РёС†РёРё РїРµСЂСЃРѕРЅР°Р¶Р° РґР»СЏ С‚РѕРіРѕ С‡С‚Рѕ Р±С‹ РЅР°Р№С‚Рё РїРѕР·РёС†РёСЋ РґСѓР»Р°
+			FVector spawn_location = GetActorLocation() + spawn_rotation.RotateVector(Muzzle_Offset);
 
-			//Устанавливаем оброботку столкновений при спавне
+			//РЈСЃС‚Р°РЅР°РІР»РёРІР°РµРј РѕР±СЂРѕР±РѕС‚РєСѓ СЃС‚РѕР»РєРЅРѕРІРµРЅРёР№ РїСЂРё СЃРїР°РІРЅРµ
 			FActorSpawnParameters ActorSpawnParams;
 			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
 
-			// Спавним снаряд на дуле
+			// РЎРїР°РІРЅРёРј СЃРЅР°СЂСЏРґ РЅР° РґСѓР»Рµ
 			world->SpawnActor<AStalker_Projectile>(Projectile_Class, spawn_location, spawn_rotation, ActorSpawnParams);
 		}
 	}
 
-	// Пытаемся проиграть звук выстрела если он указан
+	// РџС‹С‚Р°РµРјСЃСЏ РїСЂРѕРёРіСЂР°С‚СЊ Р·РІСѓРє РІС‹СЃС‚СЂРµР»Р° РµСЃР»Рё РѕРЅ СѓРєР°Р·Р°РЅ
 	if (Fire_Sound != nullptr)
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, Fire_Sound, character->GetActorLocation());
 	}
 
-	// Пытаемся проиграть анимацию выстрела если он указан
-	if (Fire_Animation != nullptr)
+	// РџС‹С‚Р°РµРјСЃСЏ РїСЂРѕРёРіСЂР°С‚СЊ Р°РЅРёРјР°С†РёСЋ РІС‹СЃС‚СЂРµР»Р° РµСЃР»Рё РѕРЅ СѓРєР°Р·Р°РЅ
+	/*if (Fire_Animation != nullptr)
 	{
 		if (UAnimInstance* anim_instance = character->Mesh_1P->GetAnimInstance())
 		{
 			anim_instance->Montage_Play(Fire_Animation, 1.0f);
 		}
+	}*/
+}
+
+void AWeapon::Attach_To_Socket(USkeletalMeshComponent *character_mesh, FName arm_socket_name)
+{
+
+	USceneComponent *root_conponent = GetRootComponent();
+	if (UPrimitiveComponent *primitive_component = Cast<UPrimitiveComponent>(root_conponent))
+	{
+		primitive_component->SetSimulatePhysics(false);
+		primitive_component->SetCollisionProfileName(UCollisionProfile::NoCollision_ProfileName);
+	}
+
+	// РђС‚С‚Р°С‡РёРј РѕСЂСѓР¶РёРµ Рє РїРµСЂСЃРѕРЅР°Р¶Сѓ
+	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
+	AttachToComponent(character_mesh, AttachmentRules, arm_socket_name);
+
+}
+
+void AWeapon::Fire_NPC()
+{
+	if (Fire_Animation != 0)
+	{
+		BP_Weapon_Mesh_Component->PlayAnimation(Fire_Animation, false);
 	}
 }

@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+п»ї// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "Stalker_Character.h"
 #include "AWeapon.h"
@@ -40,35 +40,12 @@ AStalker_Character::AStalker_Character()
 
 }
 
-void AStalker_Character::PickUp_Weapon(AWeapon* weapon)
-{
-
-	if (weapon == nullptr )
-	{
-		return;
-	}
-
-	if (Curennt_Weapon != 0)
-	{
-		Curennt_Weapon->Detach();
-	}
-
-	Curennt_Weapon = weapon;
-
-	// Аттачим оружие к персонажу
-	FAttachmentTransformRules AttachmentRules(EAttachmentRule::SnapToTarget, true);
-	AttachToComponent(Mesh_1P, AttachmentRules, FName(TEXT("GripPoint")));
-	// Устанавливаем значение true Has_Rifle, что ы анимационный блюпринт мог переключиться на другой набор анимаций
-	Has_Rifle = true;
-
-}
-
 void AStalker_Character::BeginPlay()
 {
 	Super::BeginPlay();
 
 	// Add Input Mapping Context
-	// Добовляем Mapping Context для ввода
+	// Р”РѕР±РѕРІР»СЏРµРј Mapping Context РґР»СЏ РІРІРѕРґР°
 	if (APlayerController* player_controller = Cast<APlayerController>(Controller))
 	{
 		if (UEnhancedInputLocalPlayerSubsystem *input_subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(player_controller->GetLocalPlayer()))
@@ -85,11 +62,12 @@ void AStalker_Character::SetupPlayerInputComponent(UInputComponent* input_compon
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(input_component))
 	{
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AStalker_Character::Move);
-		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AStalker_Character::Look);
-		EnhancedInputComponent->BindAction(Fire_Action, ETriggerEvent::Triggered, this, &AStalker_Character::Fire);
+		EnhancedInputComponent->BindAction(Jump_Action, ETriggerEvent::Started, this, &ACharacter::Jump);
+		EnhancedInputComponent->BindAction(Jump_Action, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+		EnhancedInputComponent->BindAction(Move_Action, ETriggerEvent::Triggered, this, &AStalker_Character::On_Move_Action);
+		EnhancedInputComponent->BindAction(Look_Action, ETriggerEvent::Triggered, this, &AStalker_Character::On_Look_Action);
+		EnhancedInputComponent->BindAction(Fire_Action, ETriggerEvent::Triggered, this, &AStalker_Character::On_Fire_Action);
+		EnhancedInputComponent->BindAction(Use_Action, ETriggerEvent::Triggered, this, &AStalker_Character::On_Use_Action);
 	}
 	else
 	{
@@ -98,7 +76,7 @@ void AStalker_Character::SetupPlayerInputComponent(UInputComponent* input_compon
 }
 
 
-void AStalker_Character::Move(const FInputActionValue &value)
+void AStalker_Character::On_Move_Action(const FInputActionValue &value)
 {
 	// input is a Vector2D
 	FVector2D movement_vector = value.Get<FVector2D>();
@@ -112,7 +90,7 @@ void AStalker_Character::Move(const FInputActionValue &value)
 }
 
 
-void AStalker_Character::Look(const FInputActionValue &value)
+void AStalker_Character::On_Look_Action(const FInputActionValue &value)
 {
 	// input is a Vector2D
 	FVector2D look_axis_vector = value.Get<FVector2D>();
@@ -126,10 +104,70 @@ void AStalker_Character::Look(const FInputActionValue &value)
 	}
 }
 
-void AStalker_Character::Fire(const FInputActionValue &value)
+void AStalker_Character::On_Fire_Action(const FInputActionValue &value)
 {
-	if (Curennt_Weapon != 0)
+	if (Current_Weapon != 0)
 	{
-		Curennt_Weapon->Fire(this);
+		Current_Weapon->Fire(this);
 	}
+}
+
+void AStalker_Character::On_Use_Action(const FInputActionValue &value)
+{
+	int i;
+	double distance, min_distance;
+	AActor* item, *curr_item;
+	FVector player_pos, item_pos;
+	if (Interactable_Actrors.Num() == 0)
+	{
+		return;
+	}
+	if (Interactable_Actrors.Num() == 1)
+	{	
+		item = Interactable_Actrors[0];
+		Interactable_Actrors.RemoveAt(0);
+	}
+	else
+	{
+		player_pos = GetActorLocation();
+
+		for (i = 0; i < Interactable_Actrors.Num(); i++)
+		{
+			curr_item = Interactable_Actrors[i];
+
+			item_pos = curr_item->GetActorLocation();
+
+			distance = FVector::Distance(player_pos, item_pos);
+
+			if (i == 0 || distance < min_distance)
+			{
+				min_distance = distance;
+				item = curr_item;
+			}
+		}
+		Interactable_Actrors.Remove(item);
+	}
+
+	if(AWeapon *weapon = Cast<AWeapon>(item))
+	{
+		PickUp_Weapon(weapon);
+	}
+}
+
+void AStalker_Character::PickUp_Weapon(AWeapon* weapon)
+{
+	if (weapon == nullptr )
+	{
+		return;
+	}
+
+	if (Current_Weapon != 0)
+	{
+		Current_Weapon->Detach();
+	}
+
+	Current_Weapon = weapon;
+	Current_Weapon->Attach(Mesh_1P);
+	// РЈСЃС‚Р°РЅР°РІР»РёРІР°РµРј Р·РЅР°С‡РµРЅРёРµ true Has_Rifle, С‡С‚Рѕ С‹ Р°РЅРёРјР°С†РёРѕРЅРЅС‹Р№ Р±Р»СЋРїСЂРёРЅС‚ РјРѕРі РїРµСЂРµРєР»СЋС‡РёС‚СЊСЃСЏ РЅР° РґСЂСѓРіРѕР№ РЅР°Р±РѕСЂ Р°РЅРёРјР°С†РёР№
+	Has_Rifle = true;
 }
